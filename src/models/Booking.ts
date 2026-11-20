@@ -1,4 +1,4 @@
-// booking er schema
+// booking er full schema - video er moto
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IBooking extends Document {
@@ -7,10 +7,14 @@ export interface IBooking extends Document {
   owner: mongoose.Types.ObjectId;
   startDate: Date;
   endDate: Date;
-  totalDays: number;
-  totalPrice: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed";
-  paymentStatus: "pending" | "paid";
+  quantity: number;
+  contact: string;
+  address: string;
+  notes: string;
+  totalAmount: number;
+  paymentStatus: "Unpaid" | "Paid";
+  bookingStatus: "Pending" | "Confirmed" | "Completed" | "Cancelled";
+  transactionId: string;
 }
 
 const bookingSchema = new Schema<IBooking>(
@@ -20,18 +24,14 @@ const bookingSchema = new Schema<IBooking>(
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    totalDays: { type: Number, required: true },
-    totalPrice: { type: Number, required: true },
-    status: {
-      type: String,
-      enum: ["pending", "confirmed", "cancelled", "completed"],
-      default: "pending",
-    },
-    paymentStatus: {
-      type: String,
-      enum: ["pending", "paid"],
-      default: "pending",
-    },
+    quantity: { type: Number, default: 1 },
+    contact: { type: String, default: "" },
+    address: { type: String, default: "" },
+    notes: { type: String, default: "" },
+    totalAmount: { type: Number, required: true },
+    paymentStatus: { type: String, enum: ["Unpaid", "Paid"], default: "Unpaid" },
+    bookingStatus: { type: String, enum: ["Pending", "Confirmed", "Completed", "Cancelled"], default: "Pending" },
+    transactionId: { type: String, default: "" },
   },
   { timestamps: true }
 );
