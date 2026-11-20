@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
+import equipmentRoutes from "./routes/equipmentRoutes";
 
 dotenv.config();
 const app = express();
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/equipment", equipmentRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
