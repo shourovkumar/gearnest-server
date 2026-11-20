@@ -17,7 +17,7 @@ export const register = async (req: Request, res: Response) => {
 
     const oldUser = await User.findOne({ email });
     if (oldUser) {
-      return res.status(400).json({ message: "Email already used" });
+      return res.status(400).json({ message: 'Email already used' });
     }
 
     const user = new User({ name, email, password, role });
@@ -25,12 +25,13 @@ export const register = async (req: Request, res: Response) => {
 
     const token = makeToken(user._id.toString(), user.role);
     res.status(201).json({
-      message: "Register success",
+      message: 'Register success',
       token,
       user: { _id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
-    res.status(500).json({ message: "Register failed" });
+    console.log('Register error:', error);
+    res.status(500).json({ message: 'Register failed' });
   }
 };
 
@@ -40,22 +41,23 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: 'User not found' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Wrong password" });
+      return res.status(400).json({ message: 'Wrong password' });
     }
 
     const token = makeToken(user._id.toString(), user.role);
     res.json({
-      message: "Login success",
+      message: 'Login success',
       token,
       user: { _id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
-    res.status(500).json({ message: "Login failed" });
+    console.log('Login error:', error);
+    res.status(500).json({ message: 'Login failed' });
   }
 };
 
