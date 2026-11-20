@@ -6,6 +6,7 @@ import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
 import equipmentRoutes from "./routes/equipmentRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/equipment", equipmentRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
