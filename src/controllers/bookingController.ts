@@ -15,7 +15,7 @@ const stripe = process.env.STRIPE_SECRET_KEY
 const calcTotal = (price: number, type: string, start: Date, end: Date, qty: number) => {
   const safePrice = Number(price) || 0;
   const safeQty = Number(qty) || 1;
-  const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
   let unit = days;
   if (type === "Weekly") unit = Math.ceil(days / 7);
   if (type === "Monthly") unit = Math.ceil(days / 30);
