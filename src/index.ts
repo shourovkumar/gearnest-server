@@ -3,11 +3,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./config/db";
+import analyticsRoutes from "./routes/analyticsRoutes";
 import authRoutes from "./routes/authRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
 import equipmentRoutes from "./routes/equipmentRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
+import userRoutes from "./routes/userRoutes";
 
 dotenv.config();
 const app = express();
@@ -27,6 +29,8 @@ app.use("/api/equipment", equipmentRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/favorites", favoriteRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
