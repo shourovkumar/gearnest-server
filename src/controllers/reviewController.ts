@@ -31,3 +31,15 @@ export const getReviews = async (req: any, res: Response) => {
     res.status(500).json({ message: "Fetch failed" });
   }
 };
+
+// amar review gula - customer dashboard er My Reviews er jonno
+export const getMyReviews = async (req: AuthRequest, res: Response) => {
+  try {
+    const reviews = await Review.find({ user: req.user._id })
+      .populate("equipment", "name")
+      .sort({ createdAt: -1 });
+    res.json({ reviews });
+  } catch (error) {
+    res.status(500).json({ message: "Fetch failed" });
+  }
+};
