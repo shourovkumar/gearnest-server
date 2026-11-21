@@ -13,23 +13,40 @@ const stripe = process.env.STRIPE_SECRET_KEY
 
 // total hisab - Daily / Weekly / Monthly + quantity
 const calcTotal = (price: number, type: string, start: Date, end: Date, qty: number) => {
-  const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const safePrice = Number(price) || 0;
+  const safeQty = Number(qty) || 1;
+  const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   let unit = days;
   if (type === "Weekly") unit = Math.ceil(days / 7);
   if (type === "Monthly") unit = Math.ceil(days / 30);
-  return price * unit * qty;
+  return safePrice * unit * safeQty;
 };
 
 export const createCheckout = async (req: AuthRequest, res: Response) => {
   try {
     const { equipmentId, startDate, endDate, quantity, contact, address, notes } = req.body;
+    const qty = Number(quantity) || 1;
+
     const equipment: any = await Equipment.findById(equipmentId);
     if (!equipment) return res.status(404).json({ message: "Equipment not found" });
-    if (equipment.availableQuantity < quantity) {
+    if (equipment.availableQuantity < qty) {
       return res.status(400).json({ message: "Not enough quantity available" });
     }
 
-    const total = calcTotal(equipment.rentalPrice, equipment.rentalType, new Date(startDate), new Date(endDate), quantity);
+    // FIX: Equipment model a field er nam price, rentalPrice na.
+    // Fallback dilam jate jekono nam holeo kaj kore, ar NaN na hoy
+    const unitPrice = Number(equipment.price ?? equipment.rentalPrice ?? equipment.pricePerDay ?? 0);
+    const rentalType = equipment.rentalType || equipment.type || "Daily";
+
+    if (!unitPrice || isNaN(unitPrice)) {
+      return res.status(400).json({ message: "Equipment price not found" });
+    }
+
+    const total = calcTotal(unitPrice, rentalType, new Date(startDate), new Date(endDate), qty);
+
+    if (!total || isNaN(total) || total <= 0) {
+      return res.status(400).json({ message: "Invalid total amount" });
+    }
 
     const booking = new Booking({
       equipment: equipmentId,
@@ -37,7 +54,7 @@ export const createCheckout = async (req: AuthRequest, res: Response) => {
       owner: equipment.owner,
       startDate,
       endDate,
-      quantity,
+      quantity: qty,
       contact,
       address,
       notes,
