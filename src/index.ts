@@ -10,6 +10,9 @@ import equipmentRoutes from "./routes/equipmentRoutes";
 import favoriteRoutes from "./routes/favoriteRoutes";
 import reviewRoutes from "./routes/reviewRoutes";
 import userRoutes from "./routes/userRoutes";
+import { startCron } from './utils/cron';
+
+startCron();
 
 dotenv.config();
 const app = express();

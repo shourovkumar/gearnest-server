@@ -5,6 +5,7 @@ import { AuthRequest } from "../middleware/auth";
 import Booking from "../models/Booking";
 import Equipment from "../models/Equipment";
 import Payment from "../models/Payment";
+import { sendBookingEmail } from "../utils/sendEmail";
 
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY as string)
@@ -80,8 +81,14 @@ export const createCheckout = async (req: AuthRequest, res: Response) => {
 export const confirmBooking = async (req: AuthRequest, res: Response) => {
   try {
     const { bookingId } = req.body;
-    const booking: any = await Booking.findById(bookingId);
+    // populate korlam - naile email / name pawa jabe na
+    const booking: any = await Booking.findById(bookingId).populate("customer", "name email").populate("equipment", "name");
     if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // age theke Paid hole abar quantity komabo na
+    if (booking.paymentStatus === "Paid") {
+      return res.json({ message: "Already confirmed", booking });
+    }
 
     booking.paymentStatus = "Paid";
     booking.bookingStatus = "Confirmed";
@@ -90,7 +97,7 @@ export const confirmBooking = async (req: AuthRequest, res: Response) => {
 
     const payment = new Payment({
       booking: booking._id,
-      customer: booking.customer,
+      customer: booking.customer._id,
       amount: booking.totalAmount,
       transactionId: booking.transactionId,
       status: "Paid",
@@ -98,10 +105,20 @@ export const confirmBooking = async (req: AuthRequest, res: Response) => {
     await payment.save();
 
     // quantity komabo
-    await Equipment.findByIdAndUpdate(booking.equipment, { $inc: { availableQuantity: -booking.quantity } });
+    await Equipment.findByIdAndUpdate(booking.equipment._id, { $inc: { availableQuantity: -booking.quantity } });
+
+    // email pathabo - customer ke
+    if (booking.customer?.email) {
+      await sendBookingEmail(
+        booking.customer.email,
+        "Booking Confirmed - GearNest",
+        `Hi ${booking.customer.name}, your booking for ${booking.equipment.name} has been confirmed. Total: ${booking.totalAmount}`
+      );
+    }
 
     res.json({ message: "Payment successful", booking });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Confirm failed" });
   }
 };
