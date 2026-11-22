@@ -41,7 +41,8 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    // FIX: IUser a photo nai, tai any diye nilam - naile TS2339 error dey Render a
+    const user: any = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "User not found" });
     const ok = await user.comparePassword(password);
     if (!ok) return res.status(400).json({ message: "Wrong password" });
@@ -56,7 +57,8 @@ export const login = async (req: Request, res: Response) => {
 export const googleLogin = async (req: Request, res: Response) => {
   try {
     const { name, email, photo } = req.body;
-    let user = await User.findOne({ email });
+    // FIX: same - photo er jonno any
+    let user: any = await User.findOne({ email });
     if (!user) {
       user = new User({ name, email, photo, password: "Google123", role: "customer" });
       await user.save();

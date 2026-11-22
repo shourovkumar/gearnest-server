@@ -1,7 +1,9 @@
 // equipment er schema
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IEquipment extends Document {
+// FIX: Document er vitoreo model() method ase, tai IEquipment er model: string er sathe clash hoy
+// Omit<Document, 'model'> diye Document er model ta bad dilam, ekhon ar TS2430 asbe na
+export interface IEquipment extends Omit<Document, 'model'> {
   name: string;
   description: string;
   category: string;
