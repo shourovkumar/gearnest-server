@@ -1,23 +1,28 @@
 // email - booking hole customer + owner ke mail
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+import nodemailer from 'nodemailer';
 
 export const sendBookingEmail = async (to: string, subject: string, text: string) => {
   try {
-    if (!process.env.EMAIL_USER) {
-      console.log("Email skipped - no EMAIL_USER in env");
+    const user = process.env.EMAIL_USER;
+    const pass = process.env.EMAIL_PASS;
+
+    if (!user || !pass) {
+      console.log('Email skipped - EMAIL_USER / EMAIL_PASS missing in .env');
       return;
     }
-    await transporter.sendMail({ from: process.env.EMAIL_USER, to, subject, text });
-    console.log("Email sent to", to);
+
+    // transporter ekhon vitore banabo - .env tokhon load hoye gese
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: user,
+        pass: pass.replace(/\s/g, ''),
+      },
+    });
+
+    await transporter.sendMail({ from: user, to, subject, text });
+    console.log('Email sent to', to);
   } catch (error) {
-    console.log("Email failed:", error);
+    console.log('Email failed:', error);
   }
 };
