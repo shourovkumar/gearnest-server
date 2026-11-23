@@ -126,7 +126,13 @@ const confirmBooking = async (req, res) => {
             status: "Paid",
         });
         await payment.save();
-        await Equipment_1.default.findByIdAndUpdate(booking.equipment._id, { $inc: { availableQuantity: -booking.quantity } });
+        // FIX: quantity kokhono -1 hobe na, 0 te atke jabe
+        // Age chilo $inc: -qty, tai 0 theke -1 hoye jeto, Epson er moto
+        const eq = await Equipment_1.default.findById(booking.equipment._id);
+        if (eq) {
+            const newQty = Math.max(0, (Number(eq.availableQuantity) || 0) - booking.quantity);
+            await Equipment_1.default.findByIdAndUpdate(booking.equipment._id, { availableQuantity: newQty });
+        }
         if (booking.customer?.email) {
             await (0, sendEmail_1.sendBookingEmail)(booking.customer.email, "Booking Confirmed - GearNest", `Hi ${booking.customer.name}, your booking for ${booking.equipment.name} has been confirmed. Total: ${booking.totalAmount}`);
         }

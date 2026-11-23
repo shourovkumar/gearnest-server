@@ -185,3 +185,42 @@ export const getAllBookings = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: "Fetch failed" });
   }
 };
+
+// customer nijer booking cancel korbe
+export const cancelBooking = async (req: AuthRequest, res: Response) => {
+  try {
+    const booking: any = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // sudhu nijer booking + admin cancel korte parbe
+    if (booking.customer.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ message: "You have no permission" });
+    }
+
+    if (booking.bookingStatus === "Cancelled" || booking.bookingStatus === "Canceled") {
+      return res.status(400).json({ message: "Already cancelled" });
+    }
+    if (booking.bookingStatus === "Completed") {
+      return res.status(400).json({ message: "Completed booking cannot be cancelled" });
+    }
+
+    const wasConfirmed = booking.bookingStatus === "Confirmed";
+    booking.bookingStatus = "Cancelled";
+    await booking.save();
+
+    // Confirmed chilo mane quantity age komsilo, ekhon ferot dibo
+    if (wasConfirmed) {
+      const eq: any = await Equipment.findById(booking.equipment);
+      if (eq) {
+        await Equipment.findByIdAndUpdate(booking.equipment, {
+          availableQuantity: (Number(eq.availableQuantity) || 0) + (Number(booking.quantity) || 1),
+        });
+      }
+    }
+
+    res.json({ message: "Booking cancelled", booking });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Cancel failed" });
+  }
+};
