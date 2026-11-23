@@ -80,11 +80,32 @@ const getMe = async (req, res) => {
 exports.getMe = getMe;
 const updateProfile = async (req, res) => {
     try {
+        // FIX: token a id thake, _id na - 2 tai handle korlam
+        const userId = req.user?._id || req.user?.id;
+        if (!userId)
+            return res.status(401).json({ message: "Unauthorized" });
         const { name, photo, phone, address } = req.body;
-        const updated = await User_1.default.findByIdAndUpdate(req.user._id, { name, photo, phone, address }, { new: true });
+        // FIX: Base64 pic onek boro hole agei clear error dao - server hang hobe na
+        if (photo && typeof photo === "string" && photo.startsWith("data:image") && photo.length > 5000) {
+            return res.status(400).json({ message: "Photo too large - please upload via ImgBB link" });
+        }
+        // FIX: Sudhu ja asche tai update koro - undefined diye overwrite hobe na
+        const updateData = {};
+        if (name !== undefined)
+            updateData.name = name;
+        if (photo !== undefined)
+            updateData.photo = photo;
+        if (phone !== undefined)
+            updateData.phone = phone;
+        if (address !== undefined)
+            updateData.address = address;
+        const updated = await User_1.default.findByIdAndUpdate(userId, updateData, { new: true });
+        if (!updated)
+            return res.status(404).json({ message: "User not found" });
         res.json({ message: "Profile updated", user: updated });
     }
     catch (error) {
+        console.error("Update profile error:", error);
         res.status(500).json({ message: "Update failed" });
     }
 };

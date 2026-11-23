@@ -7,7 +7,10 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: "admin" | "owner" | "customer";
+  photo?: string;
   photoURL?: string;
+  phone?: string;
+  address?: string;
   comparePassword: (password: string) => Promise<boolean>;
 }
 
@@ -21,7 +24,10 @@ const userSchema = new Schema<IUser>(
       enum: ["admin", "owner", "customer"],
       default: "customer",
     },
+    photo: { type: String, default: "" },
     photoURL: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    address: { type: String, default: "" },
   },
   { timestamps: true }
 );

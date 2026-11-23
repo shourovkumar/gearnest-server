@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBookings = exports.getOwnerBookings = exports.getMyBookings = exports.confirmBooking = exports.createCheckout = void 0;
+exports.cancelBooking = exports.getAllBookings = exports.getOwnerBookings = exports.getMyBookings = exports.confirmBooking = exports.createCheckout = void 0;
 const stripe_1 = __importDefault(require("stripe"));
 const Booking_1 = __importDefault(require("../models/Booking"));
 const Equipment_1 = __importDefault(require("../models/Equipment"));
@@ -174,3 +174,39 @@ const getAllBookings = async (req, res) => {
     }
 };
 exports.getAllBookings = getAllBookings;
+// customer nijer booking cancel korbe
+const cancelBooking = async (req, res) => {
+    try {
+        const booking = await Booking_1.default.findById(req.params.id);
+        if (!booking)
+            return res.status(404).json({ message: "Booking not found" });
+        // sudhu nijer booking + admin cancel korte parbe
+        if (booking.customer.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+            return res.status(403).json({ message: "You have no permission" });
+        }
+        if (booking.bookingStatus === "Cancelled" || booking.bookingStatus === "Canceled") {
+            return res.status(400).json({ message: "Already cancelled" });
+        }
+        if (booking.bookingStatus === "Completed") {
+            return res.status(400).json({ message: "Completed booking cannot be cancelled" });
+        }
+        const wasConfirmed = booking.bookingStatus === "Confirmed";
+        booking.bookingStatus = "Cancelled";
+        await booking.save();
+        // Confirmed chilo mane quantity age komsilo, ekhon ferot dibo
+        if (wasConfirmed) {
+            const eq = await Equipment_1.default.findById(booking.equipment);
+            if (eq) {
+                await Equipment_1.default.findByIdAndUpdate(booking.equipment, {
+                    availableQuantity: (Number(eq.availableQuantity) || 0) + (Number(booking.quantity) || 1),
+                });
+            }
+        }
+        res.json({ message: "Booking cancelled", booking });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Cancel failed" });
+    }
+};
+exports.cancelBooking = cancelBooking;
