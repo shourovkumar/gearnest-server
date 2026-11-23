@@ -91,7 +91,7 @@ export const createCheckout = async (req: AuthRequest, res: Response) => {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: "bdt",
             product_data: { name: equipment.name },
             unit_amount: Math.round(total * 100),
           },

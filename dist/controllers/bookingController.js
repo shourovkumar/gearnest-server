@@ -84,7 +84,7 @@ const createCheckout = async (req, res) => {
             line_items: [
                 {
                     price_data: {
-                        currency: "usd",
+                        currency: "bdt",
                         product_data: { name: equipment.name },
                         unit_amount: Math.round(total * 100),
                     },
