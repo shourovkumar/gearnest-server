@@ -136,7 +136,13 @@ export const confirmBooking = async (req: AuthRequest, res: Response) => {
     });
     await payment.save();
 
-    await Equipment.findByIdAndUpdate(booking.equipment._id, { $inc: { availableQuantity: -booking.quantity } });
+    // FIX: quantity kokhono -1 hobe na, 0 te atke jabe
+    // Age chilo $inc: -qty, tai 0 theke -1 hoye jeto, Epson er moto
+    const eq: any = await Equipment.findById(booking.equipment._id);
+    if (eq) {
+      const newQty = Math.max(0, (Number(eq.availableQuantity) || 0) - booking.quantity);
+      await Equipment.findByIdAndUpdate(booking.equipment._id, { availableQuantity: newQty });
+    }
 
     if (booking.customer?.email) {
       await sendBookingEmail(
